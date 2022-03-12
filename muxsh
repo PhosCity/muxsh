@@ -69,36 +69,55 @@ get_section() {
 	echo "$section_data"
 }
 
+# Add project to the config
 config_add () {
 	if ! grep -q "\[Project\]" "$config" ; then
 		echo "Config does not exist. Creating new one."
 		printf "[Project]\n\n" >> "$config"
-		cont="y"
-		while [ "$cont" == "y" ]; do
-			while [ "$prj" == "" ]; do
-				printf "Name of Project: "
-				read -r prj
-			done
-			while [ "$pth" == "" ]; do
-				printf "Path of the project: "
-				read -r pth
-				if [ ! -d "$pth" ]; then
-					echo "Not a valid path."
-					pth=""
-				fi
-			done
+	fi
+	cont="y"
+	while [ "$cont" == "y" ]; do
+		printf "Name of Project: "
+		read -r prj
+		if [ -n "$prj" ]; then
+			printf "Path of the project: "
+			read -r pth
+			if [ ! -d "$pth" ]; then
+				echo "Not a valid path."
+			fi
+		else
+			echo "Project is needed for continuing."
+		fi
+		if [ -n "$prj" ] && [ -n "$pth" ]; then
 			sed -i "/\[Project\]/a $prj = $pth" "$config"
-			prj=""
-			pth=""
-			printf "Do you want to continue adding projects[y/n]"
-			read -r cont
-		done
+		fi
+		printf "Do you want to continue adding projects[y/n]"
+		read -r cont
+	done
+}
+
+# Remove project from the config
+# TODO: Not a good implementation rn. Fix
+config_remove () {
+	if ! grep -q "\[Project\]" "$config" ; then
+		echo "There are no projects in the config to remove."
+	else
+		project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | fzf)
+		to_delete=$(get_section "Project" | grep "$project")
+		line_to_delete=$(grep -n -F -x "$to_delete" "$config" | cut -d: -f1)
+		sed -i "${line_to_delete}d" "$config"
+		echo "Removed $project from the config"
 	fi
 }
 
+# Choose project and path from config if they are already not passed as an argument.
+# Then cd to that directory.
+# Also if config is not found, then prompt user to add one.
 change_directory () {
 	if [ -z "$project" ]; then
-		config_add
+		if ! grep -q "\[Project\]" "$config" ; then
+			config_add
+		fi
 		project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | fzf)
 	fi
 	[ -z "$project" ] && die "Project was not selected by the user."
@@ -119,18 +138,20 @@ help_text () {
 	while IFS= read -r line; do
 		printf "%s\n" "$line"
 	done <<EOF
-USAGE: ${0##*/} [OPTIONS]
+USAGE: ${0##*/} [OPTIONS] arguments
 [OPTIONS]
-  -h	 	Show this help text
-  -o	 	See acutal subkt output of last mux in case you need it
-  -p [path]	Path of the project (Does not have to be in config)
-  -n [name]	Name of the project saved in config
-  -e [digit]	Episode you want to mux
-  -r	 	Repeat last muxing action
+  -h	 		Show this help text
+  -o	 		See acutal subkt output of last mux in case you need it
+  -p [path]		Path of the project (Does not have to be in config)
+  -n [name]		Name of the project saved in config
+  -e [digit]		Episode you want to mux
+  -r	 		Repeat last muxing action
+  -a	 		Alternate folder structure(./arc/episode)
+  -c [add/remove]	Add or remove project in the config
 EOF
 }
 
-while getopts ':p:hon:e:ra' OPT; do
+while getopts ':p:hon:e:rac:' OPT; do
 	case $OPT in
 		:)
 			printf "$c_red%s.$c_reset\n" "Please provide an argument to -$OPTARG" >&2
@@ -174,6 +195,15 @@ while getopts ':p:hon:e:ra' OPT; do
 		a)
 			alt_folder="yes"
 			;;
+		c)
+			if [ "$OPTARG" == "add" ]; then
+				config_add
+			elif [ "$OPTARG" == "remove" ]; then
+				config_remove
+			fi
+			exit 0
+			;;
+
 		?)
 			echo "Invalid option: -${OPTARG}."
 			help_text
