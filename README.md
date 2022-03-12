@@ -2,7 +2,7 @@
 
 muxsh is a wrapper for [SubKt](https://github.com/Myaamori/SubKt) that was written with the aim of sorting out the output of SubKt. While the output of SubKt is not bad, the important information can sometimes be hidden among a wall of text that is not entirely necessary to the end user to see. So this tool takes both the stdout and stderr of SubKt and presents in more digestable format. It is config based where you can save any number of your projects that you're currently working on and choose 
 
-## Main feature of muxkt
+## Main feature of muxsh
 
 * It's config based where you can save any number of your current projects. You can thus run this script and choose from one of your projects to mux it's episodes.
 * Choose a single or multiple episodes to mux then all at once.
@@ -36,7 +36,7 @@ Provided that you have saved your projects in config, `muxsh komi 4` will mux ep
 `muxsh -n komi -e 4` will have similar effect.
 
 # Alternate Folder Structure
-This program has a flag `muxkt mux -a` for alternate folder structure. You will probably never have to use this but I have implemented this folder structure for a couple of my projects thus I have added this here. The folder structure looks like this:
+This program has a flag `-a` for alternate folder structure. You will probably never have to use this but I have implemented this folder structure for a couple of my projects thus I have added this here. The folder structure looks like this:
 ```.
 ├── 01 Name of Arc 1/ Season 1
 │   ├── 01
