@@ -1,0 +1,343 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2059
+
+# Variables
+dependencies=( fzf java mkvmerge )
+c_reset="\033[0m"
+c_red="\033[1;31m"
+c_green="\033[1;32m"
+
+folder="${XDG_CACHE_HOME:-$HOME/.cache}/subkt"
+output="$folder/subkt.txt"
+config_folder="${XDG_CONFIG_HOME:-$HOME/.config}/muxkt"
+config="$config_folder/config"
+
+# Animations
+# https://github.com/Silejonu/bash_loading_animations
+passing_dots=( 0.25 '.  ' '.. ' ' ..' '  .' '   ' )
+active_loading_animation=("${passing_dots[@]}")
+# Extract the delay between each frame from the active_loading_animation array
+loading_animation_speed="${active_loading_animation[0]}"
+unset "active_loading_animation[0]"
+# Stop the animation and restore the normal cursor if the script is interrupted
+trap stop_loading_animation SIGINT
+
+loading_animation() {
+	while true ; do
+		tput civis
+		for frame in "${active_loading_animation[@]}" ; do
+			printf "\r%s" "${frame}"
+			sleep "${loading_animation_speed}"
+		done
+	done
+}
+
+start_loading_animation() {
+	loading_animation &
+	loading_animation_id="${!}"
+}
+
+stop_loading_animation() {
+	kill "${loading_animation_id}" &> /dev/null
+	printf "\n"
+	tput cnorm
+}
+
+# Create required directories and config file if they're not present
+[ ! -d "$folder" ] && mkdir -p "$folder"
+[ ! -d "$config_folder" ] && mkdir -p "$config_folder"
+[ -f "$config" ] || : > "$config"
+
+# Functions
+die () {
+	printf "${c_red}%s${c_reset}\n" "$*" >&2
+	exit 1
+}
+
+# Check dependencies
+dep_ch () {
+	for dep; do
+		if ! command -v "$dep" >/dev/null ; then
+			missing_dep="${missing_dep}\"${dep}\" "
+		fi
+	done
+}
+
+# Read config and get all the key, value pair for a particular section
+get_section() {
+	section_data=$(sed "0,/^\[$1\]$/d" "$config" | sed '/^$/Q;/\[.*\]/d')
+	echo "$section_data"
+}
+
+config_add () {
+	echo "Config does not exist. Creating new one."
+	if ! grep -q "\[Project\]" "$config" ; then
+		printf "\n[Project]\n\n" >> "$config"
+	fi
+	while [ "$prj" == "" ]; do
+		printf "Name of Project: "
+		read -r prj
+	done
+	while [ "$pth" == "" ]; do
+		printf "Path of the project: "
+		read -r pth
+		if [ ! -d "$pth" ]; then
+			echo "Not a valid path."
+			pth=""
+		fi
+	done
+	sed -i "/\[Project\]/a $prj = $pth" "$config"
+}
+
+change_directory () {
+	if [ -z "$project" ]; then
+		if [ ! -s "$config" ]; then
+			config_add
+		fi
+	
+		project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | fzf)
+	fi
+	[ -z "$project" ] && die "Project was not selected by the user."
+	[ -z "$project_path" ] && project_path=$(get_section "Project" | grep "$project" | cut -d= -f2 | sed "s/\"//g;s/^ //g")
+	cd "$project_path" || die "Path in config is not correct."
+}
+
+check_episode () {
+	case "$1" in
+		*[!0-9]*) die "The episode provided is not a digit.";;
+		# In case user inputs single digit, pad it with 0
+		[0-9]) episode=$(printf "%02d" "$1") ;;
+		*) episode="$1";;
+	esac
+}
+
+help_text () {
+	while IFS= read -r line; do
+		printf "%s\n" "$line"
+	done <<EOF
+USAGE: ${0##*/} [OPTIONS]
+[OPTIONS]
+  -h	 	Show this help text
+  -o	 	See acutal subkt output of last mux in case you need it
+  -p [path]	Path of the project (Does not have to be in config)
+  -n [name]	Name of the project saved in config
+  -e [digit]	Episode you want to mux
+  -r	 	Repeat last muxing action
+EOF
+}
+
+while getopts ':p:hon:e:ra' OPT; do
+	case $OPT in
+		:)
+			printf "$c_red%s.$c_reset\n" "Please provide an argument to -$OPTARG" >&2
+			help_text | grep -e "USAGE" -e "-$OPTARG"
+			exit 2
+			;;
+		h)
+			help_text
+			exit 0
+			;;
+		o)
+			cat "$output"
+			exit 0
+			;;
+		p)
+			if [ ! -d "$OPTARG" ]; then
+				die "$OPTARG is not a valid path."
+			else
+				project_path="$OPTARG"
+				project="$OPTARG"
+				cd "$project_path" || exit 1
+			fi
+			;;
+		n)
+			[ -s "$config" ] || die "No content found in config. Please add your projects to the config which is located at $config_folder"
+
+			project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | grep -x "$OPTARG")
+			if [ -z "$project" ]; then
+				printf "The project named $OPTARG could not be found in the config.\n"
+				printf "The available projects are:\n"
+				get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g"	
+				exit 2
+			fi
+			;;
+		e)
+			check_episode "$OPTARG"
+			;;
+		r)
+			project="Repeat Last"
+			;;
+		a)
+			alt_folder="yes"
+			;;
+		?)
+			echo "Invalid option: -${OPTARG}."
+			help_text
+			exit 1
+			;;
+	esac
+done
+shift $((OPTIND - 1))
+
+attachedFonts () {
+	printf "$c_green\nFonts Attached:\n$c_reset"
+	grep -i -o "^Attaching.*[ot]tf" "$1" | sed "s/Attaching //"
+}
+
+tasksLists () {
+	printf "$c_green\nTasks Performed:\n$c_reset"
+	grep "Task :[^S]" "$1" | sed "
+	  s/\..*default//g
+	  s/.*chapters/Create Chapters/
+	  s/.*merge/Merge dialouge subtitles with opening/g
+	  s/.*mux/Mux the files into an mkv/g
+	  s/.*dub/Create dubtitles/g
+  	"
+}
+
+chapter () {
+	printf "$c_green\nChapters Generated:\n$c_reset"
+	grep "CHAPTER" "$1"
+}
+
+warning () {
+	printf "$c_red\nWARNINGS:\n$c_reset"
+	grep "conflicting PlayRes" "$1"
+	grep -e 'warning:' -e 'Validating fonts' "$1" | sed "s/warning: //; s/\.\.\.$//"
+}
+
+tracks () {
+	printf "$c_green\nMuxed Tracks:\n$c_reset"
+	grep "^Track" "$1"
+}
+
+final () {
+	printf "\n"
+	grep "BUILD" "$1"
+}
+
+failure () {
+	grep -e "FAILED" \
+		-e "What went wrong" \
+		-e "A problem occurred" \
+		-e "Execution failed for task" \
+		-e "Error resolving" \
+		-e "not found in root project" \
+		-e "style already exists" \
+		-e "one or more fatal font-related issues encountered" \
+		-e "FileNotFoundException" \
+		-e "mkvmerge -J command failed" \
+		-e "malformed property" \
+		-e "mkvmerge failed:" \
+		-e "Error: " \
+		-e "FAILURE: " \
+		-e "is ambiguous in root project" \
+		-e "could not find target sync line" \
+		-e "Could not create task" \
+		-e "no chapter definitions found;" \
+		-e "Negative time after shifting line" \
+		-e "Could not resolve" \
+		-e "Could not list available versions" \
+		"$1"
+}
+
+all () {
+	if [[ -f "$1" ]]; then
+		tasksLists "$1"
+		grep -q "Attaching chapters" "$1" && chapter "$1"
+		grep -q "^Track" "$1" && tracks "$1"
+		grep -q "^Attaching.*[ot]tf" "$1" && attachedFonts "$1"
+		grep -q "warning:" "$1" && warning "$1"
+		final "$1"
+	else
+		echo "Output file not found so output cannot be displayed."
+	fi
+}
+# check for main dependencies
+for i in "${dependencies[@]}"
+do
+	dep_ch "$i"
+done
+[[ -n "$missing_dep" ]] && die "${missing_dep}not found. Please install all missing dependencies."
+
+# Read History
+if [ "$project" = "Repeat Last" ]; then
+	_hist=$(get_section "History" | tr -d "\n")
+	project=$(cut -d= -f1 <<< "$_hist")
+	project_path=$(cut -d= -f2 <<< "$_hist" | cut -d';' -f1 | sed "s/^ //")
+	episode=$(cut -d= -f2 <<< "$_hist" | cut -d';' -f2 | tr -d "\n" | tr "," "\n")
+fi
+
+# Read query (Should be given in `<path to script> <project> <episode>` format)
+if [ -n "$*" ]; then
+	query="$*"
+	project=$(echo "$query" | sed s/' \w*$'//)
+	episode="${query##* }"
+	check_episode "$episode"
+fi
+
+# Change directory to the project folder
+change_directory
+
+# Get episode to mux
+if [ "$alt_folder" == "yes" ]; then
+
+	# Get arcs or seasons
+	[ -z "$arc" ] && arc=$(find . -maxdepth 1 -type d -name '[0-9]*' | cut -c 3- | sort | fzf --layout=reverse --prompt="Select an arc: ")
+	[ -z "$arc" ] && die "Arc was not selected by the user"
+
+	# Get key of the arc or season.
+	# Generally, its the folder name of the arc, minus the space and all character uncapitalized.
+	key=$(echo "$arc" | cut -c 4- | tr -d "[:space:]" | tr "[:upper:]" "[:lower:]")
+
+	# In case the key does not follow the lower, unspaced rule, define exceptions in the config
+	exception=$(get_section "Exceptions" | grep "$key" | cut -d= -f2 | sed "s/^ //")
+	if [ -n "$exception" ]; then
+		key="$exception"
+	fi
+	[ -z "$key" ] && die "Key for an arc could not be determined."
+
+	[ -z "$episode" ] && episode=$(find "$arc"/. -maxdepth 1 -type d -name '[0-9]*' | cut -d/ -f3 | sort | fzf --layout=reverse --multi --bind ctrl-a:toggle-all --prompt="Press ENTER for single, TAB for multiple and CTRL+a for all episodes.: ")
+
+else
+
+	[ -z "$episode" ] && episode=$(find . -maxdepth 1 -type d -name '[0-9]*' | cut -c 3- | sort | fzf --layout=reverse --multi --bind ctrl-a:toggle-all --prompt="Press ENTER for single, TAB for multiple and CTRL+a for all episodes.: ")
+
+fi
+[ -z "$episode" ] && die "Episode was not provided by the user."
+
+# Create an array with all the selected episodes
+mapfile -t ep <<< "$episode"
+
+# Add history to config file
+if [ "$alt_folder" == "yes" ]; then
+	ep_hist=$(echo "$episode" | sed "s/^/${key}_/g" | tr "\n" "," | sed "s/,$//g")
+else
+	ep_hist=$(echo "$episode" | tr "\n" "," | sed "s/,$//g")
+fi
+hist=$(printf "%s = %s;%s" "$project" "$project_path" "$ep_hist")
+if ! grep -q "\[History\]" "$config" ; then
+	printf "\n[History]\n\n" >> "$config"
+fi
+sed -i "/\[History\]/!b;n;c$hist" "$config"
+
+tput clear
+for i in "${ep[@]}"; do
+
+	if [ "$alt_folder" == "yes" ]; then
+		mux_key="$key"_"$i"
+	else
+		mux_key="$i"
+	fi
+	printf "Muxing $c_green\"%s\" $c_reset- Episode $c_green%s$c_reset\n" "$project" "$mux_key"
+	# Mux the episode
+	start_loading_animation
+	if ./gradlew mux."$mux_key" > "$output" 2>&1; then
+		stop_loading_animation
+		all "$output"
+	else
+		stop_loading_animation
+		warning "$output"
+		failure "$output"
+	fi
+done
