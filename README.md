@@ -10,12 +10,11 @@ muxsh is a wrapper for [SubKt](https://github.com/Myaamori/SubKt) that was writt
 * Sort both the stdout and stderr of SubKt and present them less verbosely.
 * Redo the last mux (single or mutiple episodes) with a flag.
 * If you want to watch the original output of Subkt for the last mux you did, you can easily do so with a flag.
-* Support for alternate folder structure. [Read more about alternate folder structure here.](#Alernate Folder Structure.)
+* Support for alternate folder structure. [Read more about alternate folder structure here.](#Alternate Folder Structure.)
 
 # Installation
 
 Clone this repo and copy the script to path. Conversely create an alias in your shell that points to the location of the script.
-Install from pypi:
 
 # Usage
 You can simply run the script without any arguments or run with the flags as shown below. The first run of the script will prompt you to create a config or you can create one yourself. The sample config is in the repo. The config should be located at `${XDG_CONFIG_HOME}\muxkt\config`.
