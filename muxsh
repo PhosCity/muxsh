@@ -305,6 +305,7 @@ fi
 # Read query (Should be given in `<path to script> <project> <episode>` format)
 if [ -n "$*" ]; then
 	query="$*"
+	# shellcheck disable=SC2001
 	project=$(echo "$query" | sed s/' \w*$'//)
 	episode="${query##* }"
 	check_episode "$episode"
