@@ -70,31 +70,35 @@ get_section() {
 }
 
 config_add () {
-	echo "Config does not exist. Creating new one."
 	if ! grep -q "\[Project\]" "$config" ; then
-		printf "\n[Project]\n\n" >> "$config"
-	fi
-	while [ "$prj" == "" ]; do
-		printf "Name of Project: "
-		read -r prj
-	done
-	while [ "$pth" == "" ]; do
-		printf "Path of the project: "
-		read -r pth
-		if [ ! -d "$pth" ]; then
-			echo "Not a valid path."
+		echo "Config does not exist. Creating new one."
+		printf "[Project]\n\n" >> "$config"
+		cont="y"
+		while [ "$cont" == "y" ]; do
+			while [ "$prj" == "" ]; do
+				printf "Name of Project: "
+				read -r prj
+			done
+			while [ "$pth" == "" ]; do
+				printf "Path of the project: "
+				read -r pth
+				if [ ! -d "$pth" ]; then
+					echo "Not a valid path."
+					pth=""
+				fi
+			done
+			sed -i "/\[Project\]/a $prj = $pth" "$config"
+			prj=""
 			pth=""
-		fi
-	done
-	sed -i "/\[Project\]/a $prj = $pth" "$config"
+			printf "Do you want to continue adding projects[y/n]"
+			read -r cont
+		done
+	fi
 }
 
 change_directory () {
 	if [ -z "$project" ]; then
-		if [ ! -s "$config" ]; then
-			config_add
-		fi
-	
+		config_add
 		project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | fzf)
 	fi
 	[ -z "$project" ] && die "Project was not selected by the user."
