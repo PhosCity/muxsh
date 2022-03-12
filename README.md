@@ -10,7 +10,7 @@ muxsh is a wrapper for [SubKt](https://github.com/Myaamori/SubKt) that was writt
 * Sort both the stdout and stderr of SubKt and present them less verbosely.
 * Redo the last mux (single or mutiple episodes) with a flag.
 * If you want to watch the original output of Subkt for the last mux you did, you can easily do so with a flag.
-* Support for alternate folder structure. [Read more about alternate folder structure here.](#Alternate Folder Structure.)
+* Support for alternate folder structure. [Read more about alternate folder structure here.](#Alternate Folder Structure)
 
 # Installation
 
