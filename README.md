@@ -22,13 +22,14 @@ You can simply run the script without any arguments or run with the flags as sho
 ```
 USAGE: muxsh [OPTIONS] arguments
 [OPTIONS]
-  -h	 	Show this help text
-  -o	 	See acutal subkt output of last mux in case you need it
-  -p [path]	Path of the project (Does not have to be in config)
-  -n [name]	Name of the project saved in config
-  -e [digit]	Episode you want to mux
-  -r	 	Repeat last muxing action
-  -a	 	Alternate folder structure(./arc/episode)
+  -h	 		Show this help text
+  -o	 		See acutal subkt output of last mux in case you need it
+  -p [path]		Path of the project (Does not have to be in config)
+  -n [name]		Name of the project saved in config
+  -e [digit]		Episode you want to mux
+  -r	 		Repeat last muxing action
+  -a	 		Alternate folder structure(./arc/episode)
+  -c [add/remove]	Add or remove project in the config
 ```
 
 Provided that you have saved your projects in config, `muxsh komi 4` will mux episode 4 of project named komi.
