@@ -26,7 +26,7 @@
 VERSION="0.1.0"
 
 # Variables
-dependencies=( fzf java mkvmerge )
+dependencies=( fzf java mkvmerge curl sed grep cut  )
 c_reset="\033[0m"
 c_red="\033[1;31m"
 c_green="\033[1;32m"
@@ -108,24 +108,28 @@ config_add () {
 		echo "Config does not exist. Creating new one."
 		printf "[Project]\n\n" >> "$config"
 	fi
-	cont="y"
-	while [ "$cont" == "y" ]; do
+	while :; do
 		printf "Name of Project: "
 		read -r prj
-		if [ -n "$prj" ]; then
+		if [ -z "$prj" ]; then
+			echo "Project is needed for continuing."
+		else
 			printf "Path of the project: "
 			read -r pth
 			if [ ! -d "$pth" ]; then
 				echo "Not a valid path."
+				pth=""
 			fi
-		else
-			echo "Project is needed for continuing."
 		fi
 		if [ -n "$prj" ] && [ -n "$pth" ]; then
 			sed -i "/\[Project\]/a $prj = $pth" "$config"
 		fi
-		printf "Do you want to continue adding projects[y/n]"
+		printf "Do you want to continue adding projects[y/n]: "
 		read -r cont
+		case "$cont" in
+			y) ;;
+			*) break ;;
+		esac
 	done
 }
 
@@ -230,16 +234,20 @@ while getopts ':p:hon:e:rac:v' OPT; do
 			alt_folder="yes"
 			;;
 		c)
-			if [ "$OPTARG" == "add" ]; then
-				config_add
-			elif [ "$OPTARG" == "remove" ]; then
-				config_remove
-			fi
+			case "$OPTARG" in
+				"add") config_add ;;
+				"remove") config_remove ;;
+				*)
+					echo "Not a valid argument."
+					help_text | grep -e "USAGE" -e "-$OPT"	
+				;;
+			esac
+			exit 0
+			;;
 		v)
 			echo "muxsh, Version: $VERSION"
 			exit 0
 			;;
-
 		?)
 			echo "Invalid option: -${OPTARG}."
 			help_text
