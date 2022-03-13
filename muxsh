@@ -339,12 +339,12 @@ for i in "${dependencies[@]}"
 do
 	dep_ch "$i"
 done
-[[ -n "$missing_dep" ]] && die "${missing_dep}not found. Please install all missing dependencies."
+[ -n "$missing_dep" ] && die "${missing_dep}not found. Please install all missing dependencies."
 
 # Read History
 if [ "$project" = "Repeat Last" ]; then
 	_hist=$(get_section "History" | tr -d "\n")
-	project=$(cut -d= -f1 <<< "$_hist")
+	project=$(cut -d= -f1 <<< "$_hist" | sed "s/[[:space:]]*$//")
 	project_path=$(cut -d= -f2 <<< "$_hist" | cut -d';' -f1 | sed "s/^ //")
 	episode=$(cut -d= -f2 <<< "$_hist" | cut -d';' -f2 | tr -d "\n" | tr "," "\n")
 fi
@@ -414,7 +414,7 @@ for i in "${ep[@]}"; do
 	printf "Muxing $c_green\"%s\" $c_reset- Episode $c_green%s$c_reset\n" "$project" "$mux_key"
 	# Mux the episode
 	start_loading_animation
-	if ./gradlew mux."$mux_key" > "$output" 2>&1; then
+	if ./gradlew --console=plain mux."$mux_key" > "$output" 2>&1; then
 		stop_loading_animation
 		all "$output"
 	else
