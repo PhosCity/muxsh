@@ -28,11 +28,23 @@ sudo make uninstall
 ```
 
 # Usage
-You can simply run the script without any arguments or run with the flags as shown below. The first run of the script will prompt you to create a config or you can create one yourself. The sample config is in the repo. The config should be located at `${XDG_CONFIG_HOME}\muxkt\config`.
+
+This project is primarily made for following folder structure:
+```
+.
+├── 01
+├── 02
+├── 03
+├── ...
+└── Subkt Configs
+```
+
+You can simply run the script without any arguments or run with the flags as shown below. The first run of the script will prompt you to create a config. You can add projects to the config yourself using the flag `muxsh -c add` or `muxsh -c remove` to add and remove projects to the config respectively.
+
 ```
 USAGE: muxsh [OPTIONS] arguments
 [OPTIONS]
-  -h	 		Show this help text
+  -h	 		Show this help text and exit
   -o	 		See acutal subkt output of last mux in case you need it
   -p [path]		Path of the project (Does not have to be in config)
   -n [name]		Name of the project saved in config
@@ -40,6 +52,7 @@ USAGE: muxsh [OPTIONS] arguments
   -r	 		Repeat last muxing action
   -a	 		Alternate folder structure(./arc/episode)
   -c [add/remove]	Add or remove project in the config
+  -v			Show the version and exit
 ```
 
 Provided that you have saved your projects in config, `muxsh komi 4` will mux episode 4 of project named komi.
