@@ -75,3 +75,7 @@ This program has a flag `-a` for alternate folder structure. You will probably n
 └── Subkt Configs
 ```
 This folder structure became necessary for me because I was handling projects of hundreds of epidodes and thus I had to divide the episodes in their respective arcs. If you have this folder structure, use `-a` flag while muxing and the project will prompt you to choose both an arc and the episode of that arc for muxing.
+
+# Acknowledgement
+
+Thanks to [bucket3432](https://github.com/bucket3432) for all the help he provided while writing this script.
