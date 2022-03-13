@@ -14,7 +14,18 @@ muxsh is a wrapper for [SubKt](https://github.com/Myaamori/SubKt) that was writt
 
 # Installation
 
-Clone this repo and copy the script to path. Conversely create an alias in your shell that points to the location of the script.
+```
+git clone https://github.com/PhosCity/muxsh.git 
+cd muxsh
+sudo make
+```
+
+# Uninstallation
+
+Go to the directory where you cloned the repo.
+```
+sudo make uninstall
+```
 
 # Usage
 You can simply run the script without any arguments or run with the flags as shown below. The first run of the script will prompt you to create a config or you can create one yourself. The sample config is in the repo. The config should be located at `${XDG_CONFIG_HOME}\muxkt\config`.
