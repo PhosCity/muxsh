@@ -21,6 +21,10 @@
 #
 # Project repository: https://github.com/PhosCity/muxsh
 
+
+# Version number
+VERSION="0.1.0"
+
 # Variables
 dependencies=( fzf java mkvmerge )
 c_reset="\033[0m"
@@ -72,6 +76,15 @@ stop_loading_animation() {
 die () {
 	printf "${c_red}%s${c_reset}\n" "$*" >&2
 	exit 1
+}
+
+# Check for update
+check_update () {
+	update="$(curl -s "https://raw.githubusercontent.com/PhosCity/muxsh/main/muxsh" | diff -u "$0" -)"
+	if [ -n "$update" ]; then
+		printf "There seems to be a new version available in github.\nPlease get it from https://github.com/PhosCity/muxsh \n"
+		sleep 3
+	fi
 }
 
 # Check dependencies
@@ -160,7 +173,7 @@ help_text () {
 	done <<EOF
 USAGE: ${0##*/} [OPTIONS] arguments
 [OPTIONS]
-  -h	 		Show this help text
+  -h	 		Show this help text and exit
   -o	 		See acutal subkt output of last mux in case you need it
   -p [path]		Path of the project (Does not have to be in config)
   -n [name]		Name of the project saved in config
@@ -168,10 +181,11 @@ USAGE: ${0##*/} [OPTIONS] arguments
   -r	 		Repeat last muxing action
   -a	 		Alternate folder structure(./arc/episode)
   -c [add/remove]	Add or remove project in the config
+  -v	 		Print the version number and exit
 EOF
 }
 
-while getopts ':p:hon:e:rac:' OPT; do
+while getopts ':p:hon:e:rac:v' OPT; do
 	case $OPT in
 		:)
 			printf "$c_red%s.$c_reset\n" "Please provide an argument to -$OPTARG" >&2
@@ -221,6 +235,8 @@ while getopts ':p:hon:e:rac:' OPT; do
 			elif [ "$OPTARG" == "remove" ]; then
 				config_remove
 			fi
+		v)
+			echo "muxsh, Version: $VERSION"
 			exit 0
 			;;
 
@@ -307,6 +323,9 @@ all () {
 		echo "Output file not found so output cannot be displayed."
 	fi
 }
+# check for new version of the script
+check_update
+
 # check for main dependencies
 for i in "${dependencies[@]}"
 do
