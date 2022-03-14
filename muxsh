@@ -319,7 +319,7 @@ failure () {
 		-e "no chapter definitions found;" \
 		-e "Negative time after shifting line from" \
 		-e "Could not resolve" \
-		-e "Could not list available versions" \ \
+		-e "Could not list available versions" \
 		-e "duplicate target sync lines with value" \
 		-e "could not post to webhook:" \
 		-e "Unexpected CRC for" \
