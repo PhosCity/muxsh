@@ -22,7 +22,7 @@
 
 
 # Version number
-VERSION="0.1.0"
+VERSION="0.1.5"
 
 # Variables
 dependencies=( fzf java mkvmerge curl sed grep cut  )
@@ -317,9 +317,28 @@ failure () {
 		-e "could not find target sync line" \
 		-e "Could not create task" \
 		-e "no chapter definitions found;" \
-		-e "Negative time after shifting line" \
+		-e "Negative time after shifting line from" \
 		-e "Could not resolve" \
-		-e "Could not list available versions" \
+		-e "Could not list available versions" \ \
+		-e "duplicate target sync lines with value" \
+		-e "could not post to webhook:" \
+		-e "Unexpected CRC for" \
+		-e "malformed line in" \
+		-e "Recursive property dependency detected:" \
+		-e "Attempting to access unfinished task" \
+		-e "Attempted to access entry" \
+		-e "more than one file added, but no root set, or conflicting roots." \
+		-e "couldn't upload torrent:" \
+		-e "request failed:" \
+		-e "could not upload" \
+		-e "can't convert type to destination directory:" \
+		-e "Invalid SSL Session" \
+		-e "Could not create directory:" \
+		-e "ssh command failed" \
+		-e "no conversion available from String to" \
+		-e "Invalid value for Collisions:" \
+		-e "too few fields in section" \
+		-e "could not parse" \
 		"$1"
 }
 
