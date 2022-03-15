@@ -37,7 +37,7 @@ active_loading_animation=("${passing_dots[@]}")
 # Extract the delay between each frame from the active_loading_animation array
 loading_animation_speed="${active_loading_animation[0]}"
 unset "active_loading_animation[0]"
-# Stop the animation and restore the normal  if the script is interrupted
+# Stop the animation and restore the normal cursor if the script is interrupted
 trap stop_loading_animation SIGINT
 
 loading_animation() {
