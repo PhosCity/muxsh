@@ -21,7 +21,7 @@
 # Project repository: https://github.com/PhosCity/muxsh
 
 # Version number
-VERSION="0.1.6"
+VERSION="0.1.7"
 
 # Variables
 dependencies=(fzf java mkvmerge curl sed grep cut)
@@ -81,11 +81,19 @@ green_text() {
 }
 
 # Check for update
-check_update() {
+update_script() {
 	update="$(curl -s "https://raw.githubusercontent.com/PhosCity/muxsh/main/muxsh" | diff -u "$0" -)"
-	if [[ -n "${update}" ]]; then
-		printf "There seems to be a new version available in github.\nPlease get it from https://github.com/PhosCity/muxsh \n"
+	if [[ "${1}" == "check" ]] && [[ -n "${update}" ]]; then
+		printf "There seems to be a new version available in github.\nEnter \'muxsh -u\' in the terminal to update."
 		sleep 3
+	elif [[ "${1}" == "update" ]] && [[ -n "${update}" ]]; then
+		if printf '%s\n' "${update}" | patch "$0" -; then
+			echo "Script has been updated"
+		else
+			die "Can't update for some reason!"
+		fi
+	else
+		echo "There is no update."
 	fi
 }
 
@@ -188,10 +196,11 @@ USAGE: ${0##*/} [OPTIONS] arguments
   -a	 		Alternate folder structure(./arc/episode)
   -c [add/remove]	Add or remove project in the config
   -v	 		Print the version number and exit
+  -u	 		Update the script
 EOF
 }
 
-while getopts ':p:hon:e:rac:v' OPT; do
+while getopts ':p:hon:e:rac:vu' OPT; do
 	case ${OPT} in
 		:)
 			red_text "Please provide an argument to -${OPTARG}"
@@ -248,6 +257,10 @@ while getopts ':p:hon:e:rac:v' OPT; do
 			;;
 		v)
 			echo "muxsh, Version: ${VERSION}"
+			exit 0
+			;;
+		u)
+			update_script "update"
 			exit 0
 			;;
 		*)
@@ -362,7 +375,7 @@ all() {
 	fi
 }
 # check for new version of the script
-check_update
+update_script "check"
 
 # check for main dependencies
 for i in "${dependencies[@]}"; do

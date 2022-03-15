@@ -13,18 +13,19 @@ muxsh is a wrapper for [SubKt](https://github.com/Myaamori/SubKt) that was writt
 * Support for alternate folder structure. [Read more about alternate folder structure here.](https://github.com/PhosCity/muxsh#alternate-folder-structure)
 
 # Installation
-
 ```
-git clone https://github.com/PhosCity/muxsh.git 
-cd muxsh
-sudo make
+curl -s https://raw.githubusercontent.com/PhosCity/muxsh/main/muxsh -o "$HOME/.local/bin/muxsh"
+chmod +x "$HOME/.local/bin/muxsh"
 ```
 
 # Uninstallation
-
-Go to the directory where you cloned the repo.
 ```
-sudo make uninstall
+rm "$HOME/.local/bin/muxsh"
+```
+
+# Update
+```
+muxsh -u
 ```
 
 # Usage
