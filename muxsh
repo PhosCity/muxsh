@@ -100,7 +100,7 @@ dep_ch() {
 
 # Read config and get all the key, value pair for a particular section
 get_section() {
-	section_data=$(sed "0,/^\[$1\]$/d" "${config}" | sed '/^$/Q;/\[.*\]/d')
+	section_data=$(sed -e "0,/^\[$1\]$/d" -e '/^$/Q' -e '/[.*]/d' "${config}")
 	echo "${section_data}"
 }
 
@@ -269,8 +269,8 @@ tasksLists() {
 	grep "Task :[^S]" "$1" | sed "
 	  s/^.*Task ://g
 	  s/\..*default//g
-	  s/.*chapters/Create Chapters/g
-	  s/.*merge/Merge dialouge subtitles with opening/g
+	  s/.*chapters/Create chapters/g
+	  s/.*merge/Merge subtitles/g
 	  s/.*mux/Mux the files into an mkv/g
 	  s/.*dub/Create dubtitles/g
   	"
