@@ -21,7 +21,7 @@
 # Project repository: https://github.com/PhosCity/muxsh
 
 # Version number
-VERSION="0.1.5"
+VERSION="0.1.6"
 
 # Variables
 dependencies=(fzf java mkvmerge curl sed grep cut)
@@ -283,8 +283,8 @@ chapter() {
 
 warning() {
 	red_text "WARNINGS:"
-	grep "conflicting PlayRes" "$1"
-	grep -e 'warning:' -e 'Validating fonts' "$1" | sed "s/warning: //; s/\.\.\.$//"
+	grep "conflicting .* value from" "$1"
+	grep -e '[wW]arning:' -e 'Validating fonts' "$1" | sed "s/[wW]arning: //; s/\.\.\.$//"
 }
 
 tracks() {
@@ -308,12 +308,14 @@ failure() {
 		-e "one or more fatal font-related issues encountered" \
 		-e "FileNotFoundException" \
 		-e "mkvmerge -J command failed" \
+		-e "mkvmerge -J command timed out for file" \
 		-e "malformed property" \
 		-e "mkvmerge failed:" \
 		-e "Error: " \
 		-e "FAILURE: " \
 		-e "is ambiguous in root project" \
 		-e "could not find target sync line" \
+		-e "could not find property file" \
 		-e "Could not create task" \
 		-e "no chapter definitions found;" \
 		-e "Negative time after shifting line from" \
@@ -322,6 +324,7 @@ failure() {
 		-e "duplicate target sync lines with value" \
 		-e "could not post to webhook:" \
 		-e "Unexpected CRC for" \
+		-e "not a valid CRC:" \
 		-e "malformed line in" \
 		-e "Recursive property dependency detected:" \
 		-e "Attempting to access unfinished task" \
@@ -338,6 +341,11 @@ failure() {
 		-e "Invalid value for Collisions:" \
 		-e "too few fields in section" \
 		-e "could not parse" \
+		-e "no match for property name" \
+		-e "not a valid time:" \
+		-e "not a valid color:" \
+		-e "not a valid boolean:" \
+		-e "not a valid boolean:" \
 		"$1"
 }
 
