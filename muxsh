@@ -129,9 +129,13 @@ config_add() {
 			if [[ ! -d "${pth}" ]]; then
 				echo "Not a valid path."
 				pth=""
+			elif [[ ! -f "${pth}/build.gradle.kts" ]]; then
+				echo "Path does not contains Subkt config. Try again."
+				pth=""
 			fi
 		fi
 		if [[ -n "${prj}" ]] && [[ -n "${pth}" ]]; then
+			echo "Adding ${prj} to the config..."
 			sed -i "/\[Project\]/a ${prj} = ${pth}" "${config}"
 		fi
 		printf "Do you want to continue adding projects[y/n]: "
@@ -149,11 +153,13 @@ config_remove() {
 	if ! grep -q "\[Project\]" "${config}"; then
 		echo "There are no projects in the config to remove."
 	else
-		project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | fzf)
+		project=$(get_section "Project" | cut -d= -f1 | sed "s/ $//g" | fzf)
 		to_delete=$(get_section "Project" | grep "${project}")
 		line_to_delete=$(grep -n -F -x "${to_delete}" "${config}" | cut -d: -f1)
-		sed -i "${line_to_delete}d" "${config}"
-		echo "Removed ${project} from the config"
+		if [[ -n "${line_to_delete}" ]]; then
+			sed -i "${line_to_delete}d" "${config}"
+			echo "Removed ${project} from the config"
+		fi
 	fi
 }
 
@@ -181,6 +187,19 @@ check_episode() {
 	esac
 }
 
+check_path() {
+	buildfile="${1}"/build.gradle.kts
+	if [[ ! -d "${1}" ]]; then
+		red_text "${1} is not a valid path."
+		pth=""
+		exit 1
+	elif [[ ! -f "${buildfile}" ]]; then
+		red_text "${1} does not have any SubKt configs. Exiting."
+		pth=""
+		exit 1
+	fi
+}
+
 help_text() {
 	while IFS= read -r line; do
 		printf "%s\n" "${line}"
@@ -200,81 +219,9 @@ USAGE: ${0##*/} [OPTIONS] arguments
 EOF
 }
 
-while getopts ':p:hon:e:rac:vu' OPT; do
-	case ${OPT} in
-		:)
-			red_text "Please provide an argument to -${OPTARG}"
-			help_text | grep -e "USAGE" -e "-${OPTARG}"
-			exit 2
-			;;
-		h)
-			help_text
-			exit 0
-			;;
-		o)
-			cat "${output}"
-			exit 0
-			;;
-		p)
-			if [[ ! -d "${OPTARG}" ]]; then
-				die "${OPTARG} is not a valid path."
-			else
-				project_path="${OPTARG}"
-				project="${OPTARG}"
-				cd "${project_path}" || exit 1
-			fi
-			;;
-		n)
-			[[ -s "${config}" ]] || die "No content found in config. Please add your projects to the config which is located at ${config_folder}"
-
-			project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | grep -x "${OPTARG}")
-			if [[ -z "${project}" ]]; then
-				printf "The project named %s could not be found in the config.\n" "${OPTARG}"
-				printf "The available projects are:\n"
-				get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g"
-				exit 2
-			fi
-			;;
-		e)
-			check_episode "${OPTARG}"
-			;;
-		r)
-			project="Repeat Last"
-			;;
-		a)
-			alt_folder="yes"
-			;;
-		c)
-			case "${OPTARG}" in
-				"add") config_add ;;
-				"remove") config_remove ;;
-				*)
-					echo "Not a valid argument."
-					help_text | grep -e "USAGE" -e "-${OPT}"
-					;;
-			esac
-			exit 0
-			;;
-		v)
-			echo "muxsh, Version: ${VERSION}"
-			exit 0
-			;;
-		u)
-			update_script "update"
-			exit 0
-			;;
-		*)
-			echo "Invalid option: -${OPTARG}."
-			help_text
-			exit 1
-			;;
-	esac
-done
-shift $((OPTIND - 1))
-
 attachedFonts() {
 	green_text "Fonts Attached"
-	grep -i -o "^Attaching.*[ot]tf" "$1" | sed "s/Attaching //"
+	grep -i -o "^Attaching.*[ot]tf" "$1" | sed "s/Attaching //" | sort
 }
 
 tasksLists() {
@@ -297,7 +244,7 @@ chapter() {
 warning() {
 	red_text "WARNINGS:"
 	grep "conflicting .* value from" "$1"
-	grep -e '[wW]arning:' -e 'Validating fonts' "$1" | sed "s/[wW]arning: //; s/\.\.\.$//"
+	grep -e 'warning:' -e 'Validating fonts' "$1" | sed "s/warning: //; s/\.\.\.$//"
 }
 
 tracks() {
@@ -374,6 +321,77 @@ all() {
 		echo "Output file not found so output cannot be displayed."
 	fi
 }
+
+while getopts ':p:hon:e:rac:vu' OPT; do
+	case ${OPT} in
+		:)
+			red_text "Please provide an argument to -${OPTARG}"
+			help_text | grep -e "USAGE" -e "-${OPTARG}"
+			exit 2
+			;;
+		h)
+			help_text
+			exit 0
+			;;
+		o)
+			cat "${output}"
+			exit 0
+			;;
+		p)
+			check_path "${OPTARG}"
+			exit
+			project_path="${OPTARG}"
+			project="${OPTARG}"
+			# cd "${project_path}" || exit 1
+			;;
+		n)
+			[[ -s "${config}" ]] || die "No content found in config. Please add your projects to the config which is located at ${config_folder}"
+
+			project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | grep -x "${OPTARG}")
+			if [[ -z "${project}" ]]; then
+				printf "The project named %s could not be found in the config.\n" "${OPTARG}"
+				printf "The available projects are:\n"
+				get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g"
+				exit 2
+			fi
+			;;
+		e)
+			check_episode "${OPTARG}"
+			;;
+		r)
+			project="Repeat Last"
+			;;
+		a)
+			alt_folder="yes"
+			;;
+		c)
+			case "${OPTARG}" in
+				"add") config_add ;;
+				"remove") config_remove ;;
+				*)
+					echo "Not a valid argument."
+					help_text | grep -e "USAGE" -e "-${OPT}"
+					;;
+			esac
+			exit 0
+			;;
+		v)
+			echo "muxsh, Version: ${VERSION}"
+			exit 0
+			;;
+		u)
+			update_script "update"
+			exit 0
+			;;
+		*)
+			echo "Invalid option: -${OPTARG}."
+			help_text
+			exit 1
+			;;
+	esac
+done
+shift $((OPTIND - 1))
+
 # check for new version of the script
 update_script "check"
 
@@ -398,6 +416,14 @@ if [[ -n "$*" ]]; then
 	project=$(echo "${query}" | sed s/' \w*$'//)
 	episode="${query##* }"
 	check_episode "${episode}"
+	# If you're already in the project path, just do `muxsh . <episode>` to mux the <episode> of current path
+	if [[ "${project}" == "." ]]; then
+		project_path=$(pwd)
+		check_path "${project_path}"
+		project=$(get_section "Project" | grep "${project_path}" | cut -d= -f1 | sed "s/ *$//")
+		[[ -z "${project}" ]] && project="${project_path}"
+	fi
+	exit
 fi
 
 # Change directory to the project folder
