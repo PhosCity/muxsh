@@ -92,8 +92,6 @@ update_script() {
 		else
 			die "Can't update for some reason!"
 		fi
-	else
-		echo "There is no update."
 	fi
 }
 
