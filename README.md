@@ -40,7 +40,9 @@ This project is primarily made for following folder structure:
 └── Subkt Configs
 ```
 
-You can simply run the script without any arguments or run with the flags as shown below. The first run of the script will prompt you to create a config. You can add projects to the config yourself using the flag `muxsh -c add` or `muxsh -c remove` to add and remove projects to the config respectively.
+If you're running the script for the first time, I advise you to run `muxsh -c add` to add as many projects as you have and their corresponding path to the config. While project name with spaces are valid, I strongly recommend you to keep a single worded and memorable project name. If you haven't added the projects to the config, then the first run of the script will prompt you to create one. You can use the script without adding any projects to the config by directly passing the project path by doing `muxsh -p <path/to/project>` but that will get tedious soon.
+
+Running `muxsh -h` will give you the following help page which will give you a pretty solid idea of everything the script does.
 
 ```
 USAGE: muxsh [OPTIONS] arguments
@@ -54,11 +56,24 @@ USAGE: muxsh [OPTIONS] arguments
   -a	 		Alternate folder structure(./arc/episode)
   -c [add/remove]	Add or remove project in the config
   -v			Show the version and exit
+  -u			Update the script
 ```
 
-Provided that you have saved your projects in config, `muxsh komi 4` will mux episode 4 of project named komi.
+Now let's say you added a project name called `komi`. In order to mux, say episode 4 of this project, you can do any of the following:
 
-`muxsh -n komi -e 4` will have similar effect.
+```
+# Provide project name and episode as positional argument.
+muxsh komi 4
+
+# Use flags as shown in the help page.
+muxsh -n komi -e 4
+
+# Provide full path of the directory where komi project is located.
+muxsh -p path/to/komi/project -e 4
+
+# If you're already in the project folder, then you can do the following.
+muxsh . 4
+```
 
 # Alternate Folder Structure
 This program has a flag `-a` for alternate folder structure. You will probably never have to use this but I have implemented this folder structure for a couple of my projects thus I have added this here. The folder structure looks like this:
