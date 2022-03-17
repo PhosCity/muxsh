@@ -21,7 +21,7 @@
 # Project repository: https://github.com/PhosCity/muxsh
 
 # Version number
-VERSION="0.1.7"
+VERSION="0.1.8"
 
 # Variables
 dependencies=(fzf java mkvmerge curl sed grep cut)
@@ -421,7 +421,6 @@ if [[ -n "$*" ]]; then
 		project=$(get_section "Project" | grep "${project_path}" | cut -d= -f1 | sed "s/ *$//")
 		[[ -z "${project}" ]] && project="${project_path}"
 	fi
-	exit
 fi
 
 # Change directory to the project folder
