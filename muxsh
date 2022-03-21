@@ -210,7 +210,7 @@ help_text() {
 	while IFS= read -r line; do
 		printf "%s\n" "${line}"
 	done <<EOF
-USAGE: ${0##*/} [OPTIONS] arguments
+USAGE: ${0##*/} [OPTIONS] arguments [Project] [Episode/s]
 [OPTIONS]
   -h	 		Show this help text and exit
   -v	 		Print the version number and exit
