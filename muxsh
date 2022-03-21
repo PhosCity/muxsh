@@ -21,7 +21,7 @@
 # Project repository: https://github.com/PhosCity/muxsh
 
 # Version number
-VERSION="0.1.9"
+VERSION="0.2.0"
 
 # Variables
 dependencies=(fzf java mkvmerge curl sed grep cut)
@@ -422,6 +422,12 @@ fi
 
 # Change directory to the project folder
 change_directory
+
+# Check if a project has an alternate folder set in config in [Alt-Folder] section
+if grep -q "\[Alt-Folder\]" "${config}"; then
+	alt=$(get_section "Alt-Folder" | grep "${project}")
+	[[ -n "${alt}" ]] && alt_folder="yes"
+fi
 
 # Get episode to mux
 if [[ "${alt_folder}" == "yes" ]]; then
