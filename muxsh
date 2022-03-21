@@ -21,7 +21,7 @@
 # Project repository: https://github.com/PhosCity/muxsh
 
 # Version number
-VERSION="0.1.8"
+VERSION="0.1.9"
 
 # Variables
 dependencies=(fzf java mkvmerge curl sed grep cut)
@@ -169,7 +169,12 @@ change_directory() {
 		if ! grep -q "\[Project\]" "${config}"; then
 			config_add
 		fi
-		project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | fzf)
+		project_list=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g")
+		if [[ -n "${project_list}" ]]; then
+			project=$(echo "${project_list}" | fzf)
+		else
+			die "No project in config. Please add one by entering \`muxsh -c add\` in the terminal."
+		fi
 	fi
 	[[ -z "${project}" ]] && die "Project was not selected by the user."
 	[[ -z "${project_path}" ]] && project_path=$(get_section "Project" | grep "${project}" | cut -d= -f2 | sed "s/\"//g;s/^ //g")
@@ -178,10 +183,13 @@ change_directory() {
 
 check_episode() {
 	case "$1" in
-		*[!0-9]*) die "The episode provided is not a digit." ;;
+		*[!0-9]*) die "The episode provided \"${1}\" is not a digit." ;;
 		# In case user inputs single digit, pad it with 0
-		[0-9]) episode=$(printf "%02d" "$1") ;;
-		*) episode="$1" ;;
+		[0-9])
+			pad_ep=$(printf "%02d" "$1")
+			episode="${episode}${pad_ep} "
+			;;
+		*) episode="${episode}$1 " ;;
 	esac
 }
 
@@ -205,15 +213,13 @@ help_text() {
 USAGE: ${0##*/} [OPTIONS] arguments
 [OPTIONS]
   -h	 		Show this help text and exit
-  -o	 		See acutal subkt output of last mux in case you need it
-  -p [path]		Path of the project (Does not have to be in config)
-  -n [name]		Name of the project saved in config
-  -e [digit]		Episode you want to mux
-  -r	 		Repeat last muxing action
-  -a	 		Alternate folder structure(./arc/episode)
-  -c [add/remove]	Add or remove project in the config
   -v	 		Print the version number and exit
+  -a	 		Alternate folder structure(./arc/episode)
+  -p [path]		Path of the project (Does not have to be in config)
+  -o	 		See acutal subkt output of last mux in case you need it
   -u	 		Update the script
+  -r	 		Repeat last muxing action
+  -c [add/remove]	Add or remove project in the config
 EOF
 }
 
@@ -320,7 +326,7 @@ all() {
 	fi
 }
 
-while getopts ':p:hon:e:rac:vu' OPT; do
+while getopts ':hvap:ourc:' OPT; do
 	case ${OPT} in
 		:)
 			red_text "Please provide an argument to -${OPTARG}"
@@ -337,24 +343,8 @@ while getopts ':p:hon:e:rac:vu' OPT; do
 			;;
 		p)
 			check_path "${OPTARG}"
-			exit
 			project_path="${OPTARG}"
 			project="${OPTARG}"
-			# cd "${project_path}" || exit 1
-			;;
-		n)
-			[[ -s "${config}" ]] || die "No content found in config. Please add your projects to the config which is located at ${config_folder}"
-
-			project=$(get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g" | grep -x "${OPTARG}")
-			if [[ -z "${project}" ]]; then
-				printf "The project named %s could not be found in the config.\n" "${OPTARG}"
-				printf "The available projects are:\n"
-				get_section "Project" | grep "=" | cut -d= -f1 | sed "s/ $//g"
-				exit 2
-			fi
-			;;
-		e)
-			check_episode "${OPTARG}"
 			;;
 		r)
 			project="Repeat Last"
@@ -407,19 +397,26 @@ if [[ "${project}" = "Repeat Last" ]]; then
 	episode=$(cut -d= -f2 <<<"${_hist}" | cut -d';' -f2 | tr -d "\n" | tr "," "\n")
 fi
 
-# Read query (Should be given in `<path to script> <project> <episode>` format)
+# Read query (Should be given in `<path to script> <project> <episode or space seperated episodes>` format)
 if [[ -n "$*" ]]; then
 	query="$*"
-	# shellcheck disable=SC2001
-	project=$(echo "${query}" | sed s/' \w*$'//)
-	episode="${query##* }"
-	check_episode "${episode}"
+	project_query=$(echo "${query}" | cut -d" " -f1)
+	episode_query=$(echo "${query}" | cut -d" " -f2-)
+	for item in ${episode_query}; do
+		check_episode "${item}"
+	done
+	episode=$(echo "${episode}" | tr -s \  "\n" | sort)
+
 	# If you're already in the project path, just do `muxsh . <episode>` to mux the <episode> of current path
-	if [[ "${project}" == "." ]]; then
+	if [[ "${project_query}" == "." ]]; then
 		project_path=$(pwd)
 		check_path "${project_path}"
 		project=$(get_section "Project" | grep "${project_path}" | cut -d= -f1 | sed "s/ *$//")
 		[[ -z "${project}" ]] && project="${project_path}"
+	# Check if the project passed by the user exists in config or not.
+	else
+		project=$(get_section "Project" | cut -d= -f1 | sed "s/ *$//g" | grep "${project_query}")
+		[[ -z "${project}" ]] && die "Project \"${project_query}\" not found in config."
 	fi
 fi
 
