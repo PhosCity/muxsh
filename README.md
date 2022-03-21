@@ -40,7 +40,7 @@ This project is primarily made for following folder structure:
 └── Subkt Configs
 ```
 
-If you're running the script for the first time, I advise you to run `muxsh -c add` to add as many projects as you have and their corresponding path to the config. While project name with spaces are valid, I strongly recommend you to keep a single worded and memorable project name. If you haven't added the projects to the config, then the first run of the script will prompt you to create one. You can use the script without adding any projects to the config by directly passing the project path by doing `muxsh -p <path/to/project>` but that will get tedious soon.
+If you're running the script for the first time, I advise you to run `muxsh -c add` to add as many projects as you have and their corresponding path to the config. Project name with spaces are not valid. If you haven't added the projects to the config, then the first run of the script will prompt you to create one. You can use the script without adding any projects to the config by directly passing the project path by doing `muxsh -p <path/to/project>` but that will get tedious soon.
 
 Running `muxsh -h` will give you the following help page which will give you a pretty solid idea of everything the script does.
 
@@ -65,9 +65,6 @@ muxsh
 
 # Provide project name and episode as positional argument.
 muxsh komi 4
-
-# Use flags as shown in the help page.
-muxsh -n komi -e 4
 
 # Provide full path of the directory where komi project is located and select episode you want to mux.
 muxsh -p path/to/komi/project
