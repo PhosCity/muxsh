@@ -45,31 +45,32 @@ If you're running the script for the first time, I advise you to run `muxsh -c a
 Running `muxsh -h` will give you the following help page which will give you a pretty solid idea of everything the script does.
 
 ```
-USAGE: muxsh [OPTIONS] arguments
+USAGE: muxsh [OPTIONS] arguments [Project] [Episode/s]
 [OPTIONS]
   -h	 		Show this help text and exit
-  -o	 		See acutal subkt output of last mux in case you need it
-  -p [path]		Path of the project (Does not have to be in config)
-  -n [name]		Name of the project saved in config
-  -e [digit]		Episode you want to mux
-  -r	 		Repeat last muxing action
+  -v	 		Print the version number and exit
   -a	 		Alternate folder structure(./arc/episode)
+  -p [path]		Path of the project (Does not have to be in config)
+  -o	 		See acutal subkt output of last mux in case you need it
+  -u	 		Update the script
+  -r	 		Repeat last muxing action
   -c [add/remove]	Add or remove project in the config
-  -v			Show the version and exit
-  -u			Update the script
 ```
 
 Now let's say you added a project name called `komi`. In order to mux, say episode 4 of this project, you can do any of the following:
 
 ```
+# Interactive mode. Just run the following command and let the script guide you.
+muxsh
+
 # Provide project name and episode as positional argument.
 muxsh komi 4
 
 # Use flags as shown in the help page.
 muxsh -n komi -e 4
 
-# Provide full path of the directory where komi project is located.
-muxsh -p path/to/komi/project -e 4
+# Provide full path of the directory where komi project is located and select episode you want to mux.
+muxsh -p path/to/komi/project
 
 # If you're already in the project folder, then you can do the following.
 muxsh . 4
