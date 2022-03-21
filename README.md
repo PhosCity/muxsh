@@ -102,6 +102,13 @@ If the `arc` in the sub.properties has not been set to follow this rule, then th
 davybackfight = dbf
 ```
 
+Additionally, you can add projects that have alternate folder structure in config as shown below:
+
+```
+[Alt-Folder]
+project1 = alt
+project2 = alt
+```
 
 # Acknowledgement
 
