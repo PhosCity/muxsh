@@ -21,7 +21,7 @@
 # Project repository: https://github.com/PhosCity/muxsh
 
 # Version number
-VERSION="0.2.0"
+VERSION="0.2.1"
 
 # Variables
 dependencies=(fzf java mkvmerge curl sed grep cut)
@@ -430,7 +430,7 @@ if grep -q "\[Alt-Folder\]" "${config}"; then
 fi
 
 # Get episode to mux
-if [[ "${alt_folder}" == "yes" ]]; then
+if [[ "${alt_folder}" == "yes" ]] && [[ -z "${episode}" ]]; then
 
 	# Get arcs or seasons
 	[[ -z "${arc}" ]] && arc=$(find . -maxdepth 1 -type d -name '[0-9]*' | cut -c 3- | sort | fzf --layout=reverse --prompt="Select an arc: ")
@@ -460,7 +460,7 @@ fi
 mapfile -t ep <<<"${episode}"
 
 # Add history to config file
-if [[ "${alt_folder}" == "yes" ]]; then
+if [[ "${alt_folder}" == "yes" ]] && [[ -z "${episode}" ]]; then
 	ep_hist=$(echo "${episode}" | sed "s/^/${key}_/g" | tr "\n" "," | sed "s/,$//g")
 else
 	ep_hist=$(echo "${episode}" | tr "\n" "," | sed "s/,$//g")
@@ -474,7 +474,7 @@ sed -i "/\[History\]/!b;n;c${hist}" "${config}"
 tput clear
 for i in "${ep[@]}"; do
 
-	if [[ "${alt_folder}" == "yes" ]]; then
+	if [[ "${alt_folder}" == "yes" ]] && [[ -z "${episode}" ]]; then
 		mux_key="${key}"_"${i}"
 	else
 		mux_key="${i}"
