@@ -21,10 +21,10 @@
 # Project repository: https://github.com/PhosCity/muxsh
 
 # Version number
-VERSION="0.2.1"
+VERSION="0.2.2"
 
 # Variables
-dependencies=(fzf java mkvmerge curl sed grep cut)
+dependencies=(fzf java mkvmerge curl)
 folder="${XDG_CACHE_HOME:-${HOME}/.cache}/subkt"
 output="${folder}/subkt.txt"
 config_folder="${XDG_CONFIG_HOME:-${HOME}/.config}/muxkt"
@@ -248,7 +248,7 @@ chapter() {
 warning() {
 	red_text "WARNINGS:"
 	grep "conflicting .* value from" "$1"
-	grep -e 'warning:' -e 'Validating fonts' "$1" | sed "s/warning: //; s/\.\.\.$//"
+	grep -e 'warning:' -e 'Validating fonts' "$1" | sed "s/warning: //; s/\.\.\.$//;s/Validating\(.*\)/\x1b[32;1m\nValiating\1\x1b[0m/g; s/not found/\x1b[31;1mnot found\x1b[0m/g"
 }
 
 tracks() {
@@ -262,6 +262,7 @@ final() {
 }
 
 failure() {
+	printf "\n"
 	grep -e "FAILED" \
 		-e "What went wrong" \
 		-e "A problem occurred" \
@@ -281,7 +282,7 @@ failure() {
 		-e "could not find target sync line" \
 		-e "could not find property file" \
 		-e "Could not create task" \
-		-e "no chapter definitions found;" \
+		-e "no chapter definitions found" \
 		-e "Negative time after shifting line from" \
 		-e "Could not resolve" \
 		-e "Could not list available versions" \

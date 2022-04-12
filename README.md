@@ -8,9 +8,10 @@ muxsh is a wrapper for [SubKt](https://github.com/Myaamori/SubKt) that was writt
 * Choose a single or multiple episodes to mux then all at once.
 * Pass the path of the project directly as an argument to mux episodes in that folder if it's not saved in your config.
 * Sort both the stdout and stderr of SubKt and present them less verbosely.
+* Make fatal errors more easier to see. (For example: The missing fonts are highlighted among the list of warnings.)
 * Redo the last mux (single or mutiple episodes) with a flag.
 * If you want to watch the original output of Subkt for the last mux you did, you can easily do so with a flag.
-* Support for alternate folder structure. [Read more about alternate folder structure here.](https://github.com/PhosCity/muxsh#alternate-folder-structure)
+* Support for alternate folder structure. Read more about alternate folder structure below.
 
 # Installation
 ```
@@ -73,7 +74,9 @@ muxsh -p path/to/komi/project
 muxsh . 4
 ```
 
-# Alternate Folder Structure
+<details>
+  <summary>Alternate Folder Structure</summary>
+
 This program has a flag `-a` for alternate folder structure. You will probably never have to use this but I have implemented this folder structure for a couple of my projects thus I have added this here. The folder structure looks like this:
 ```.
 ├── 01 Name of Arc 1/ Season 1
@@ -106,6 +109,7 @@ Additionally, you can add projects that have alternate folder structure in confi
 project1 = alt
 project2 = alt
 ```
+</details>
 
 # Acknowledgement
 
