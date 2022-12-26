@@ -21,7 +21,7 @@
 # Project repository: https://github.com/PhosCity/muxsh
 
 # Version number
-VERSION="0.2.1"
+VERSION="0.2.3"
 
 # Variables
 dependencies=(fzf java mkvmerge curl)
